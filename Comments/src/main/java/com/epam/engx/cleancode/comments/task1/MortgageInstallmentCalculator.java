@@ -51,14 +51,14 @@ public class MortgageInstallmentCalculator {
     private static void convertToStandardizedForm(LoanApplication application) {
         application.setLoanAmount(application.getLoanAmount());
         application.setLoanDuration(covertToMonths(application.getLoanDuration()));
-        application.setInterest(convertInterest(application.getInterest()));
+        application.setInterest(convertToMonthlyInterest(application.getInterest()));
     }
 
     private static int covertToMonths(int loanDurationYears) {
         return loanDurationYears * MONTHS_IN_YEAR;
     }
 
-    private static double convertInterest(double interest) {
+    private static double convertToMonthlyInterest(double interest) {
         return interest / 100.0 / MONTHS_IN_YEAR;
     }
 
