@@ -4,38 +4,89 @@ import com.epam.engx.cleancode.comments.task1.thirdpartyjar.InvalidInputExceptio
 
 public class MortgageInstallmentCalculator {
 
-    /**
-     *
-     * @param p principal amount
-     * @param t term of mortgage in years
-     * @param r rate of interest
-     * @return monthly payment amount
-     */
-    public static double calculateMonthlyPayment(
-            int p, int t, double r) {
+    private static final int MONTHS_IN_YEAR = 12;
+    private static final int MIN_ALLOWED_INPUT = 0;
 
-        //cannot have negative loanAmount, term duration and rate of interest
-        if (p < 0 || t <= 0 || r < 0) {
-            throw new InvalidInputException("Negative values are not allowed");
+    public static double calculateMonthlyPayment(LoanApplication application) {
+        validateAndConvertToStandardizedForm(application);
+        return calculatePayment(application);
+    }
+
+    private static void validateAndConvertToStandardizedForm(LoanApplication application) {
+        validateApplication(application);
+        convertToStandardizedForm(application);
+    }
+
+    private static double calculatePayment(LoanApplication application) {
+        if (isZeroInterest(application.getInterest())) {
+            return calculateMonthlyPaymentWithZeroInterest(application);
         }
+        return calculateMonthlyPaymentWithNonZeroInterest(application);
+    }
 
-        // Convert interest rate into a decimal - eg. 6.5% = 0.065
-        r /= 100.0;
+    private static double calculateMonthlyPaymentWithZeroInterest(LoanApplication application) {
+        return (double) application.getLoanAmount() / application.getLoanDuration();
+    }
 
-        // convert term in years to term in months
-        double tim = t * 12;
+    /*
+    Formula for calculating monthly payment
+    P = L * (I / (1 - (1 + I)**-M))
+    where:
+    P - monthly payment
+    L - loan amount
+    I - monthly interest rate
+    M - months before credit end date
+     */
+    private static double calculateMonthlyPaymentWithNonZeroInterest(LoanApplication application) {
+        double monthlyInterest = application.getInterest();
+        double numerator = application.getLoanAmount() * monthlyInterest;
+        double denominator = 1 - Math.pow(1 + monthlyInterest, (-1) * application.getLoanDuration());
+        return numerator / denominator;
+    }
 
-        //for zero interest rates
-        if(r==0)
-            return  p/tim;
+    private static boolean isZeroInterest(double interest) {
+        return interest == MIN_ALLOWED_INPUT;
+    }
 
-        // convert into monthly rate
-        double m = r / 12.0;
+    private static void convertToStandardizedForm(LoanApplication application) {
+        application.setLoanAmount(application.getLoanAmount());
+        application.setLoanDuration(covertToMonths(application.getLoanDuration()));
+        application.setInterest(convertInterest(application.getInterest()));
+    }
 
-        // Calculate the monthly payment
-        // The Math.pow() method is used calculate values raised to a power
-        double monthlyPayment = (p * m) / (1 - Math.pow(1 + m, -tim));
+    private static int covertToMonths(int loanDurationYears) {
+        return loanDurationYears * MONTHS_IN_YEAR;
+    }
 
-        return monthlyPayment;
+    private static double convertInterest(double interest) {
+        return interest / 100.0 / MONTHS_IN_YEAR;
+    }
+
+    private static void validateApplication(LoanApplication application) {
+        validateLoanAmount(application.getLoanAmount());
+        validateLoanDuration(application.getLoanDuration());
+        validateInterest(application.getInterest());
+    }
+
+    private static void validateLoanAmount(int loanAmount) {
+        if (loanAmount < MIN_ALLOWED_INPUT) {
+            throwExceptionForWrongInput("Loan amount");
+        }
+    }
+
+    private static void validateLoanDuration(int loanDuration) {
+        if (loanDuration < MIN_ALLOWED_INPUT) {
+            throwExceptionForWrongInput("Loan duration");
+        }
+    }
+
+    private static void validateInterest(double interest) {
+        if (interest < MIN_ALLOWED_INPUT) {
+            throwExceptionForWrongInput("Interest rate");
+        }
+    }
+
+    private static void throwExceptionForWrongInput(String failedInputName) {
+        throw new InvalidInputException(String.format("%s should be a positive number",failedInputName));
     }
 }

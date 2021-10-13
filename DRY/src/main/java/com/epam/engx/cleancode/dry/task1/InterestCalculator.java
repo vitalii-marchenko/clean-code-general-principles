@@ -14,6 +14,7 @@ public class InterestCalculator implements Profitable {
     private static final double SENIOR_PERCENT = 5.5d;
     private static final int BONUS_AGE = 13;
     private static final int LEAP_YEAR_SHIFT = 1;
+    private static final int ONE_DAY = 1;
 
 
     public BigDecimal calculateInterest(AccountDetails accountDetails) {
@@ -34,11 +35,26 @@ public class InterestCalculator implements Profitable {
         Calendar endCalendar = new GregorianCalendar();
         endCalendar.setTime(to);
 
-        int diffYear = endCalendar.get(Calendar.YEAR) - startCalendar.get(Calendar.YEAR);
-        if (endCalendar.get(Calendar.DAY_OF_YEAR) + LEAP_YEAR_SHIFT < startCalendar.get(Calendar.DAY_OF_YEAR)) {
-            return diffYear - 1;
+        return countDiffYears(startCalendar, endCalendar);
+    }
+
+    private int durationSinceStartDateInYears(Date startDate) {
+        return durationBetweenDatesInYears(startDate, new Date());
+    }
+
+    private boolean isNotDayReached(Calendar startCalendar, Calendar endCalendar) {
+        return endCalendar.get(Calendar.DAY_OF_YEAR) + LEAP_YEAR_SHIFT < startCalendar.get(Calendar.DAY_OF_YEAR);
+    }
+
+    private int countDiffYears(Calendar start, Calendar end) {
+        int to = end.get(Calendar.YEAR);
+        int from = start.get(Calendar.YEAR);
+        int diff = to - from;
+
+        if (isNotDayReached(start, end)) {
+            return diff - ONE_DAY;
         }
-        return diffYear;
+        return diff;
     }
 
     private BigDecimal interest(AccountDetails accountDetails) {
@@ -56,19 +72,5 @@ public class InterestCalculator implements Profitable {
             return SENIOR_PERCENT;
         }
         return INTEREST_PERCENT;
-    }
-
-
-    private int durationSinceStartDateInYears(Date startDate) {
-        Calendar startCalendar = new GregorianCalendar();
-        startCalendar.setTime(startDate);
-        Calendar endCalendar = new GregorianCalendar();
-        endCalendar.setTime(new Date());
-
-        int diffYear = endCalendar.get(Calendar.YEAR) - startCalendar.get(Calendar.YEAR);
-        if (endCalendar.get(Calendar.DAY_OF_YEAR) + LEAP_YEAR_SHIFT < startCalendar.get(Calendar.DAY_OF_YEAR))
-            return diffYear - 1;
-        return diffYear;
-
     }
 }
