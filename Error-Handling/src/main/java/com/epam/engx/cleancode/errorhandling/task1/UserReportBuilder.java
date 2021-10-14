@@ -18,7 +18,7 @@ public class UserReportBuilder {
 
     public Double getUserTotalOrderAmount(String userId) {
         User user = getUserById(userId);
-        List<Order> orders = getAllValidaOrdersOf(user);
+        List<Order> orders = getAllValidOrdersOf(user);
 
         return countTotalOrderAmount(orders);
     }
@@ -29,7 +29,7 @@ public class UserReportBuilder {
                 .reduce(0.0, Double::sum);
     }
 
-    private List<Order> getAllValidaOrdersOf(User user) {
+    private List<Order> getAllValidOrdersOf(User user) {
         List<Order> orders = user.getAllOrders();
         validateOrdersPresent(orders);
         validateOrdersPrice(getSubmittedOrders(orders));
