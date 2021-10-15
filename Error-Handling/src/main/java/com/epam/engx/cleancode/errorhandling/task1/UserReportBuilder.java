@@ -42,17 +42,25 @@ public class UserReportBuilder {
 
     private List<Order> getAllValidOrdersOf(User user) {
         List<Order> orders = user.getAllOrders();
+        validateOrders(orders);
+        return getSubmittedOrders(orders);
+    }
+
+    private void validateOrders(List<Order> orders) {
         validateOrdersPresent(orders);
         validateOrdersPrice(getSubmittedOrders(orders));
-        return getSubmittedOrders(orders);
     }
 
     private void validateOrdersPrice(List<Order> orders) {
         for (Order order : orders) {
             Double total = order.total();
-            if (total < 0) {
-                throw new WrongOrderAmountException(WRONG_ORDER_AMOUNT_ERROR);
-            }
+            validateTotalPrice(total);
+        }
+    }
+
+    private void validateTotalPrice(Double total) {
+        if (total < 0) {
+            throw new WrongOrderAmountException(WRONG_ORDER_AMOUNT_ERROR);
         }
     }
 
@@ -67,7 +75,6 @@ public class UserReportBuilder {
             throw new UserNotHaveSubmittedOrdersException(USER_NOT_HAVE_SUBMITTED_ORDERS_WARNING);
         }
     }
-
 
     public void setUserDao(UserDao userDao) {
         this.userDao = userDao;

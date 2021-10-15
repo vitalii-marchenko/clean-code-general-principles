@@ -4,17 +4,11 @@ import com.epam.engx.cleancode.comments.task1.thirdpartyjar.InvalidInputExceptio
 
 public class MortgageInstallmentCalculator {
 
-    private static final int MONTHS_IN_YEAR = 12;
     private static final int MIN_ALLOWED_INPUT = 0;
 
     public static double calculateMonthlyPayment(LoanApplication application) {
-        validateAndConvertToStandardizedForm(application);
-        return calculatePayment(application);
-    }
-
-    private static void validateAndConvertToStandardizedForm(LoanApplication application) {
         validateApplication(application);
-        convertToStandardizedForm(application);
+        return calculatePayment(application);
     }
 
     private static double calculatePayment(LoanApplication application) {
@@ -29,27 +23,17 @@ public class MortgageInstallmentCalculator {
     }
 
     private static double calculateMonthlyPaymentWithNonZeroInterest(LoanApplication application) {
-        double monthlyInterest = application.getMothlyInterestDecimal();
-        double numerator = application.getLoanAmount() * monthlyInterest;
-        double denominator = 1 - Math.pow(1 + monthlyInterest, (-1) * application.getLoanDurationMoths());
-        return numerator / denominator;
+        double monthlyInterest = application.getMonthlyInterestDecimal();
+        return getPercentPartInMonthlyPayment(application.getLoanAmount(), monthlyInterest) /
+                (1 - Math.pow(1 + monthlyInterest, (-1) * application.getLoanDurationMoths()));
+    }
+
+    private static double getPercentPartInMonthlyPayment(int loanAmount, double monthlyInterest) {
+        return loanAmount * monthlyInterest;
     }
 
     private static boolean isZeroInterest(double interest) {
         return interest == MIN_ALLOWED_INPUT;
-    }
-
-    private static void convertToStandardizedForm(LoanApplication application) {
-        application.setLoanDurationMoths(covertToMonths(application.getLoanDurationYears()));
-        application.setMothlyInterestDecimal(convertToMonthlyInterestDecimal(application.getInterestPercent()));
-    }
-
-    private static int covertToMonths(int loanDurationYears) {
-        return loanDurationYears * MONTHS_IN_YEAR;
-    }
-
-    private static double convertToMonthlyInterestDecimal(double interest) {
-        return interest / 100.0 / MONTHS_IN_YEAR;
     }
 
     private static void validateApplication(LoanApplication application) {
