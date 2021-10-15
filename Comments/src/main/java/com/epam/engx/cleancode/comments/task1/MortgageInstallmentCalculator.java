@@ -18,29 +18,20 @@ public class MortgageInstallmentCalculator {
     }
 
     private static double calculatePayment(LoanApplication application) {
-        if (isZeroInterest(application.getInterest())) {
+        if (isZeroInterest(application.getInterestPercent())) {
             return calculateMonthlyPaymentWithZeroInterest(application);
         }
         return calculateMonthlyPaymentWithNonZeroInterest(application);
     }
 
     private static double calculateMonthlyPaymentWithZeroInterest(LoanApplication application) {
-        return (double) application.getLoanAmount() / application.getLoanDuration();
+        return (double) application.getLoanAmount() / application.getLoanDurationMoths();
     }
 
-    /*
-    Formula for calculating monthly payment
-    P = L * (I / (1 - (1 + I)**-M))
-    where:
-    P - monthly payment
-    L - loan amount
-    I - monthly interest rate
-    M - months before credit end date
-     */
     private static double calculateMonthlyPaymentWithNonZeroInterest(LoanApplication application) {
-        double monthlyInterest = application.getInterest();
+        double monthlyInterest = application.getMothlyInterestDecimal();
         double numerator = application.getLoanAmount() * monthlyInterest;
-        double denominator = 1 - Math.pow(1 + monthlyInterest, (-1) * application.getLoanDuration());
+        double denominator = 1 - Math.pow(1 + monthlyInterest, (-1) * application.getLoanDurationMoths());
         return numerator / denominator;
     }
 
@@ -49,23 +40,22 @@ public class MortgageInstallmentCalculator {
     }
 
     private static void convertToStandardizedForm(LoanApplication application) {
-        application.setLoanAmount(application.getLoanAmount());
-        application.setLoanDuration(covertToMonths(application.getLoanDuration()));
-        application.setInterest(convertToMonthlyInterest(application.getInterest()));
+        application.setLoanDurationMoths(covertToMonths(application.getLoanDurationYears()));
+        application.setMothlyInterestDecimal(convertToMonthlyInterestDecimal(application.getInterestPercent()));
     }
 
     private static int covertToMonths(int loanDurationYears) {
         return loanDurationYears * MONTHS_IN_YEAR;
     }
 
-    private static double convertToMonthlyInterest(double interest) {
+    private static double convertToMonthlyInterestDecimal(double interest) {
         return interest / 100.0 / MONTHS_IN_YEAR;
     }
 
     private static void validateApplication(LoanApplication application) {
         validateLoanAmount(application.getLoanAmount());
-        validateLoanDuration(application.getLoanDuration());
-        validateInterest(application.getInterest());
+        validateLoanDuration(application.getLoanDurationYears());
+        validateInterest(application.getInterestPercent());
     }
 
     private static void validateLoanAmount(int loanAmount) {

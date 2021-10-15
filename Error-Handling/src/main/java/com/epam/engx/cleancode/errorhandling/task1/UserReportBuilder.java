@@ -1,9 +1,9 @@
 package com.epam.engx.cleancode.errorhandling.task1;
 
 import com.epam.engx.cleancode.errorhandling.task1.exceptions.UserDaoNotInitializedException;
-import com.epam.engx.cleancode.errorhandling.task1.exceptions.UserNotFoundException;
-import com.epam.engx.cleancode.errorhandling.task1.exceptions.UserNotHaveSubmittedOrdersException;
-import com.epam.engx.cleancode.errorhandling.task1.exceptions.WrongOrderAmountException;
+import com.epam.engx.cleancode.errorhandling.task1.exceptions.report.UserNotFoundException;
+import com.epam.engx.cleancode.errorhandling.task1.exceptions.report.UserNotHaveSubmittedOrdersException;
+import com.epam.engx.cleancode.errorhandling.task1.exceptions.report.WrongOrderAmountException;
 import com.epam.engx.cleancode.errorhandling.task1.thirdpartyjar.Order;
 import com.epam.engx.cleancode.errorhandling.task1.thirdpartyjar.User;
 import com.epam.engx.cleancode.errorhandling.task1.thirdpartyjar.UserDao;
@@ -14,6 +14,13 @@ import static java.util.stream.Collectors.toList;
 
 public class UserReportBuilder {
 
+    private static final String USER_WITH_ID_NOT_EXIST_WARNING = "WARNING: User ID doesn't exist.";
+    private static final String USER_NOT_HAVE_SUBMITTED_ORDERS_WARNING = "WARNING: User have no submitted orders.";
+    private static final String WRONG_ORDER_AMOUNT_ERROR = "ERROR: Wrong order amount.";
+    private static final String TECHNICAL_ERROR = "technicalError";
+    private static final String CURRENCY_SYMBOL = "$";
+    private static final String USER_TOTAL_MESSAGE_GENERAL_PART = "User Total: ";
+
     private UserDao userDao;
 
     public Double getUserTotalOrderAmount(String userId) {
@@ -21,6 +28,10 @@ public class UserReportBuilder {
         List<Order> orders = getAllValidOrdersOf(user);
 
         return countTotalOrderAmount(orders);
+    }
+
+    protected static String buildUserTotalMessage(double amount) {
+        return USER_TOTAL_MESSAGE_GENERAL_PART + amount + CURRENCY_SYMBOL;
     }
 
     private double countTotalOrderAmount(List<Order> orders) {
@@ -40,7 +51,7 @@ public class UserReportBuilder {
         for (Order order : orders) {
             Double total = order.total();
             if (total < 0) {
-                throw new WrongOrderAmountException(String.format("Wrong order: %s amount: %s", order, total));
+                throw new WrongOrderAmountException(WRONG_ORDER_AMOUNT_ERROR);
             }
         }
     }
@@ -53,7 +64,7 @@ public class UserReportBuilder {
 
     private void validateOrdersPresent(List<Order> orders) {
         if (orders.isEmpty()) {
-            throw new UserNotHaveSubmittedOrdersException("User have no submitted orders.");
+            throw new UserNotHaveSubmittedOrdersException(USER_NOT_HAVE_SUBMITTED_ORDERS_WARNING);
         }
     }
 
@@ -65,14 +76,14 @@ public class UserReportBuilder {
     private User getUserById(String id) {
         User user = getUserDao().getUser(id);
         if (user == null) {
-            throw new UserNotFoundException(String.format("User with ID: %s doesn't exist.", id));
+            throw new UserNotFoundException(USER_WITH_ID_NOT_EXIST_WARNING);
         }
         return user;
     }
 
     private UserDao getUserDao() {
         if (userDao == null) {
-            throw new UserDaoNotInitializedException();
+            throw new UserDaoNotInitializedException(TECHNICAL_ERROR);
         }
         return userDao;
     }
