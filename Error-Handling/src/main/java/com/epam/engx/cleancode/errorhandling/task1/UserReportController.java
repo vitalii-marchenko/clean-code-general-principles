@@ -1,36 +1,33 @@
 package com.epam.engx.cleancode.errorhandling.task1;
 
+import com.epam.engx.cleancode.errorhandling.task1.exceptions.*;
+import com.epam.engx.cleancode.errorhandling.task1.exceptions.report.UserReportException;
 import com.epam.engx.cleancode.errorhandling.task1.thirdpartyjar.Model;
+
+import static com.epam.engx.cleancode.errorhandling.task1.UserReportBuilder.*;
 
 public class UserReportController {
 
     private UserReportBuilder userReportBuilder;
 
-    public String getUserTotalOrderAmountView(String userId, Model model){
-        String totalMessage = getUserTotalMessage(userId);
-        if (totalMessage == null)
-            return "technicalError";
-        model.addAttribute("userTotalMessage", totalMessage);
-        return "userTotal";
+    public String getUserTotalOrderAmountView(String userId, Model model) {
+        try {
+            String totalMessage = getUserTotalMessage(userId);
+            model.addAttribute("userTotalMessage", totalMessage);
+            return "userTotal";
+        } catch (UserDaoNotInitializedException ex) {
+            return ex.getMessage();
+        }
     }
 
     private String getUserTotalMessage(String userId) {
-
-        Double amount = userReportBuilder.getUserTotalOrderAmount(userId);
-
-        if (amount == null)
-            return null;
-
-        if (amount == -1)
-            return "WARNING: User ID doesn't exist.";
-        if (amount == -2)
-            return "WARNING: User have no submitted orders.";
-        if (amount == -3)
-            return "ERROR: Wrong order amount.";
-
-        return "User Total: " + amount + "$";
+        try {
+            double amount = userReportBuilder.getUserTotalOrderAmount(userId);
+            return buildUserTotalMessage(amount);
+        } catch (UserReportException ex) {
+            return ex.getMessage();
+        }
     }
-
 
     public UserReportBuilder getUserReportBuilder() {
         return userReportBuilder;
